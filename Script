@@ -1,0 +1,32 @@
+#!/bin/bash
+
+OLD_USER="oldusername"
+NEW_USER="newusername"
+
+OLD_HOME="/Users/$OLD_USER"
+NEW_HOME="/Users/$NEW_USER"
+
+if [ ! -d "$OLD_HOME" ]; then
+  echo "❌ Old home directory not found: $OLD_HOME"
+  exit 1
+fi
+
+if [ ! -d "$NEW_HOME" ]; then
+  echo "❌ New home directory not found: $NEW_HOME"
+  exit 1
+fi
+
+echo "📁 Copying files from $OLD_USER to $NEW_USER..."
+
+# Copy files
+rsync -avh --progress "$OLD_HOME/" "$NEW_HOME/"
+
+echo "🔐 Granting access to both users..."
+
+# Give ownership to new user
+chown -R "$NEW_USER:staff" "$NEW_HOME"
+
+# Grant old user read/write access using ACLs
+chmod -R +a "$OLD_USER allow read,write,delete,add_file,add_subdirectory,file_inherit,directory_inherit" "$NEW_HOME"
+
+echo "✅ Done. $NEW_USER now owns the files, but $OLD_USER retains full access."
